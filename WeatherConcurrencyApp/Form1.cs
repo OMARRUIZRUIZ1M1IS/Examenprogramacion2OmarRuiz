@@ -7,15 +7,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using WeatherConcurrencyApp.Common;
 using WeatherConcurrencyApp.Infrastructure.OpenWeatherClient;
 using WeatherConcurrentApp.Domain.Entities;
 
 namespace WeatherConcurrencyApp
 {
     public partial class FrmMain : Form
+
+
     {
+        public WeatherForeCast.ForeCastInfo wfc;
+        public List<Coordenadas> cd;
         public HttpOpenWeatherClient httpOpenWeatherClient;
-        public OpenWeather openWeather;
+        //public OpenWeather openWeather;
+       
+        double x, y;
+        long dt = DateTimeOffset.Now.ToUnixTimeSeconds();
+      
         public FrmMain()
         {
             httpOpenWeatherClient = new HttpOpenWeatherClient();
@@ -24,38 +33,53 @@ namespace WeatherConcurrencyApp
 
         private void btnOk_Click(object sender, EventArgs e)
         {
+
+
             try
             {
+                
+
                 Task.Run(Request).Wait();
-                if(openWeather == null)
+
+                x = cd[0].lat;
+                y = cd[0].lon;
+                Task.Run(Request2).Wait();
+                if (wfc == null)
                 {
                     throw new NullReferenceException("Fallo al obtener el objeto OpeWeather.");
                 }
-
+                double tempxd = wfc.current.temp - 273.15;
                 WeatherPanel weatherPanel = new WeatherPanel();
-                weatherPanel.pictureBox1.ImageLocation = "https://openweathermap.org/img/w/" + openWeather.Weather[0].Icon + ".png";
+                weatherPanel.x = x;
+                weatherPanel.y = y;
                 weatherPanel.lblCity.Text = textBox1.Text;
-                weatherPanel.lblTemperature.Text = openWeather.Main.Temp.ToString() + "°C";
-                weatherPanel.lblWeather.Text = "Temperature";
-                weatherPanel.dtwFeelsLike.lblDetailValue.Text = openWeather.Main.Feels_like.ToString();
-                weatherPanel.dtwTempMin.lblDetailValue.Text = openWeather.Main.Temp_min.ToString() + "°C";
-                weatherPanel.dtwTempMax.lblDetailValue.Text = openWeather.Main.Temp_max.ToString() + "°C";
-                weatherPanel.dtwPressure.lblDetailValue.Text = openWeather.Main.Pressure.ToString();
-                weatherPanel.dtwHumidity.lblDetailValue.Text = openWeather.Main.Humidity.ToString();
-                weatherPanel.dtwLon.lblDetailValue.Text = openWeather.Coord.Lon.ToString();
-                weatherPanel.dtwLat.lblDetailValue.Text = openWeather.Coord.Lat.ToString();
-                weatherPanel.dtwSpeed.lblDetailValue.Text = openWeather.Wind.Speed.ToString();
-                weatherPanel.dtwVissibility.lblDetailValue.Text = openWeather.Visibility.ToString() + "m";
-                weatherPanel.dtwTimeZone.lblDetailValue.Text = openWeather.Timezone.ToString();
-                weatherPanel.dtwSunrise.lblDetailValue.Text = convertLongToDate(openWeather.Sys.Sunrise).ToShortTimeString();
-                weatherPanel.dtwSunset.lblDetailValue.Text = convertLongToDate(openWeather.Sys.Sunset).ToShortTimeString();
+                weatherPanel.lblTemperature.Text = (int)tempxd + "C";
+                weatherPanel.lblWeather.Text = wfc.current.weather[0].main;
+                weatherPanel.pictureBox1.ImageLocation = $"{AppSettings.ApiIcon}" + wfc.current.weather[0].icon + ".png";
                 flpContent.Controls.Add(weatherPanel);
+
             }
             catch (Exception)
             {
-                
+
+
             }
-           
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         }
         DateTime convertLongToDate(long date)
         {
@@ -65,7 +89,31 @@ namespace WeatherConcurrencyApp
         }
         public async Task Request()
         {
-           openWeather = await httpOpenWeatherClient.GetWeatherByCityNameAsync(textBox1.Text);
+            cd = await httpOpenWeatherClient.GetLatLong(textBox1.Text);
+        }
+        public async Task Request2()
+        {
+            wfc = await httpOpenWeatherClient.GetWeatherByGeo(x, y, dt);
+        }
+
+        private void FrmMain_Load(object sender, EventArgs e)
+        {
+           
+
+
+
+
+
+        }
+
+        private void flpContent_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }

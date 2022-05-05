@@ -8,6 +8,8 @@ namespace WeatherConcurrentApp.Domain.Interfaces
 {
     public interface IHttpOpenWeatherClient
     {
-       Task<OpenWeather> GetWeatherByCityNameAsync(string city);
+        Task<WeatherForeCast.ForeCastInfo> GetWeatherByGeo(double x, double y, long dt);
+        Task<List<Coordenadas>> GetLatLong(string city);
+
     }
 }

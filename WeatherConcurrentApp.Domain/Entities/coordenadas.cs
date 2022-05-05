@@ -4,7 +4,10 @@ using System.Text;
 
 namespace WeatherConcurrentApp.Domain.Entities
 {
-    class coordenadas
+    public class Coordenadas
     {
+        public double lon { get; set; }
+        public double lat { get; set; }
+        
     }
 }
